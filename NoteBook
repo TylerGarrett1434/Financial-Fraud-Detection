@@ -1,0 +1,31 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+df = pd.read_csv('creditcard.csv')
+print(df['Class'].value_counts())
+df['Class'].value_counts(normalize=True)
+
+plt.hist(df.Amount)
+plt.hist(df.Time)
+
+from sklearn.model_selection import train_test_split
+X=df.drop('Class', axis=1)
+Y=df['Class']
+X_train,X_test, Y_train, Y_test = train_test_split(X, Y, stratify=Y, test_size=0.3, random_state=42)
+
+from sklearn.ensemble import RandomForestClassifier
+model = RandomForestClassifier(n_estimators=100, class_weight='balanced')
+model.fit(X_train,Y_train)
+
+from sklearn.metrics import classification_report, roc_auc_score, confusion_matrix
+y_pred=model.predict(X_test)
+print(classification_report(Y_test, y_pred))
+print("ROC AUC", roc_auc_score(Y_test,model.predict_proba(X_test)[:,1]))
+
+from sklearn.metrics import roc_curve
+fpr,tpr,_=roc_curve(Y_test,model.predict_proba(X_test)[:,1])
+plt.plot(fpr,tpr)
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
